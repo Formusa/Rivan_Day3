@@ -1,0 +1,207 @@
+
+Recipe for Static Routing
+
+1. Destination (10.1.1.4)
+2. Subnet Mask 255.255.255.252
+3. Next-Hop / Interface (10.1.1.2  e1/0)
+4. Return Traffic must also be configured
+
+_____________________________________________________________________
+Sample Routing R1 to R3
+@R1
+conf t
+ ip route 10.1.1.4 255.255.255.252 e1/0 10.1.1.2                   (10.1.1.4 -static network route)
+ end
+
+@R3 
+conf t
+ ip route 10.1.1.0 255.255.255.252 e1/1 10.1.1.5
+ end
+ 
+_____________________________________________________________________
+SAMPLE Routing R1 to R4
+
+@R1
+conf t
+ ip route 10.1.1.8 255.255.255.252 e1/0  10.1.1.2
+ end
+
+@R4 
+conf t
+ ip route 10.1.1.0 255.255.255.252 e1/2 10.1.1.9
+ end
+_____________________________________________________________________
+Routing R2 to R3
+
+@R2 
+conf t 
+ ip route 10.1.1.8 255.255.255.252 e1/1 10.1.1.6
+ end
+
+@R3
+conf t
+ ip route 10.1.1.4 255.255.255.252 e1/1 10.1.1.5
+ end
+
+
+
+
+_____________________________________________________________________
+To remove previous routing
+
+@R1, R2, R3, R4
+conf t 
+ no ip routing 
+ ip routing
+ end
+_____________________________________________________________________
+
+Administrative Distance Lowest Value = Highest Priority/Primary
+C or L = 0  
+Static 'S' = 1
+EIGRP 'D' = 90 
+OSPF = 110 
+ISIS (used by ISPs) = 115
+RIP = 120
+BGP
+ External = 20
+ Internal = 200
+______________________________________________________________________
+
+
+@D2 
+conf t
+ int e1/0 
+ switchport mode access
+ switchport access vlan 20
+ end
+ping 10.2.2.133
+
+
+@D1 
+conf t
+ int e1/0
+ switchport mode access
+
+
+
+
+_______________________________________________________________________________
+
+@A1 - PRIMARY
+conf t
+ ip route  0.0.0.0  0.0.0.0  192.168.1.129 1
+ ip route  0.0.0.0  0.0.0.0  192.168.1.130 10
+ end
+show ip route static
+
+
+@A2 - SECONDARY
+conf t
+ ip route 0.0.0.0  0.0.0.0  192.168.1.130 1
+ ip route 0.0.0.0  0.0.0.0  192.168.1.129 10
+ end
+show ip route static
+
+__________________________________________________________________________________
+Longest Prefix Rule
+
+@P1 - D2
+conf t
+ ip route 192.168.1.128 255.255.255.224 10.2.1.1
+ ip route 192.168.1.130 255.255.255.255 10.2.1.2
+ end
+show ip route static
+
+@P2 --> D2
+conf t
+ ip route 192.168.1.128 255.255.255.224 10.2.1.1
+ ip route 192.168.1.130 255.255.255.255 10.2.1.2
+ end
+show ip route static
+
+
+@S2 ---> A1
+ conf t
+  ip route 192.1.168.128 255.255.255.224 10.2.2.1
+  ip route 192.168.1.132 255.255.255.255 10.2.2.2
+  end
+show ip route static
+
+@S
+
+
+__________________________________________________________________________
+DYNAMIC Routing Port
+EIGRP
+
+@R4 
+show ip route | inc C
+
+
+Exercise 03: Configure EIGRP on D2. Advertise all connected routes.
+
+!@D2
+config t
+ router eigrp 100
+  no auto-summary
+  network __.__.__.__  __.__.__.__
+  network __.__.__.__  __.__.__.__
+  network __.__.__.__  __.__.__.__
+  network __.__.__.__  __.__.__.__
+  end
+
+__________________________________________________________________________
+@D1
+conf t 
+ int e3/3
+ no shut 
+ no switchport
+ ip add dhcp
+router eigrp 100
+ network 10.255.10.0 0.0.0.255
+ end
+
+
+____________________________________________________________________________
+D - Down
+I - Initialize
+T - Two-way
+E - Exstart
+E - Exchange
+L - Loading
+F - Full
+
+sh ip ospf neighbor
+
+Contents of a Hello Packet
+R   - Router ID
+A   - Area ID
+S   - Subnetment
+A   - Authentication Type
+H   - Hello Interval 10
+D   - Dead Interval 40
+DR/BDR  - Backup/Designated Router
+Dbd - Database Synching 
+
+DR/BDR Based on:
+Highest Router IP
+
+_________________________________________________________________________
+Simulate a mismatch for Neigh vs Adjacency
+
+@R3, R4
+conf t 
+ int e1/2
+ no ip ospf network point-to-point
+ end
+clear ip ospf process
+
+
+
+3 LSA
+1. Router
+2. Intra 
+3. Summary
+
+___
