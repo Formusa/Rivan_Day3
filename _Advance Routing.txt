@@ -478,7 +478,7 @@ conf t
 
 
 Exercise 2: On A1, configure a floating default route on D1 as the primary default gateway, while D2 as the secondary. 
-On A2, configure a floating default route on D2 as the primary default gateway, while D1 as the secondary. 
+On A2, configure a floating default route on D2 as the secondary default gateway, while D1 as the secondary. 
 
 !@A1
 conf t
