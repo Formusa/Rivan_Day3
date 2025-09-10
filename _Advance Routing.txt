@@ -550,12 +550,12 @@ Exercise 03: Configure EIGRP on D2. Advertise all connected routes.
 
 !@D2
 config t
- router ____  ____
+ router eigrp  100
   no auto-summary
-  network __.__.__.__  __.__.__.__
-  network __.__.__.__  __.__.__.__
-  network __.__.__.__  __.__.__.__
-  network __.__.__.__  __.__.__.__
+  network 10.1.4.8 0.0.0.3
+  network 10.2.1.0 0.0.0.255
+  network 10.2.1.0 0.0.0.255
+  network 192.168.1.130 0.0.0.31
   end
 
 
@@ -579,8 +579,8 @@ show ip eigrp topology
 show ip router eigrp
 
 
-EIGRP Admin Distance:
-EIGRP Metric Cost:
+EIGRP Admin Distance: 90
+EIGRP Metric Cost: Bandwidth + Delay
 
 
 
@@ -639,10 +639,10 @@ Exercise 04: Configure OSPF on R4 with the following settings:
 
 !@R4
 conf t
- router ___  __
-  router-id __.__.__.__
-  network __.__.__.__  __.__.__.__ area __
-  network __.__.__.__  __.__.__.__ area __
+ router ospf  1
+  router-id 4.4.4.4
+  network 10.1.1.8 0.0.0.3 area 0
+  network 4.4.4.4  0.0.0.0 area 0
   end
 
 
@@ -692,8 +692,8 @@ OSPF Network Types and Priorities.
 
 Exercise 05: Ensure R3 is the DR of the OSPF Area by completing the following tasks:
 - Eliminate the need for a DR/BDR election between R4 & R3
-- Configure R1 to be ineligible to become a DR/BDR
-- Configure R2 with the highest priority on its e1/2 interface.
+- Configure R1 to be ineligible to become a DR/BDR  (Set R1 Priority to 0)
+- Configure R2 with the highest priority on its e1/2 interface. (Set R2 Priority to 255)
 
 !@R4
 conf t
@@ -722,6 +722,7 @@ conf t
   ip ospf priority 0
   end
 
+clear ip ospf process
 ---
 
 OSPF Hello Packet
@@ -891,6 +892,9 @@ conf t
   neighbor 35.3.5.5 remote-as 45
   neighbor 209.9.9.1 remote-as 1
   address-family ipv4
+   neighbor 32.3.2.2 activate
+   neighbor 35.3.5.5 activate
+   neighbor 209.9.9.1 activate
    network 209.9.9.0 mask 255.255.255.0
    network 32.3.2.0 mask 255.255.255.0
    network 33.33.33.33 mask 255.255.255.255
@@ -905,6 +909,9 @@ config t
   neighbor 35.3.5.3 remote-as 3
   neighbor 45.4.5.4 remote-as 45
   address-family ipv4
+   neighbor 25.2.5.2 activate
+   neighbor 35.3.5.3 activate
+   neighbor 45.4.5.4 activate
    network 8.8.8.8 mask 255.255.255.255
    network 55.55.55.55 mask 255.255.255.255
    network 25.2.5.0 mask 255.255.255.0
@@ -912,23 +919,27 @@ config t
    network 45.4.5.0 mask 255.255.255.0
 end
 
-
+show bgp summary | command to check
 Exercise 06: Configure BGP on I2(PLDT). Set the ASN number to 2.
 
 !@I2 - PLDT
 config t
- router bgp __
+ router bgp 2
  bgp log-neighbor-changes
- neighbor __.__.__.__ remote-as __
- neighbor __.__.__.__  remote-as __
- neighbor __.__.__.__  remote-as __
- neighbor __.__.__.__  remote-as __
- address-family __
-  network __.__.__.__ mask __.__.__.__
-  network __.__.__.__ mask __.__.__.__
-  network __.__.__.__ mask __.__.__.__
-  network __.__.__.__ mask __.__.__.__
-  network __.__.__.__ mask __.__.__.__
+ neighbor 25.2.5.5 remote-as 45
+ neighbor 32.3.2.3  remote-as 3
+ neighbor 24.2.4.4  remote-as 45
+ neighbor 207.7.7.1  remote-as 1
+ address-family ipv4
+  neighbor 25.2.5.5 activate
+  neighbor 32.3.2.3 activate
+  neighbor 24.2.4.4 activate
+  neighbor 207.7.7.1 activate
+  network 22.22.22.22 mask 255.255.255.255
+  network 25.2.5.0 mask 255.255.255.0
+  network 32.3.2.0 mask 255.255.255.0
+  network 24.2.4.0 mask 255.255.255.0
+  network 207.7.7.0 mask 255.255.255.0
   end
 
 Ans
@@ -937,16 +948,20 @@ Ans
 config t
  router bgp 2
  bgp log-neighbor-changes
- neighbor 24.2.4.4 remote-as 45
  neighbor 25.2.5.5 remote-as 45
- neighbor 32.3.2.3 remote-as 3
- neighbor 207.7.7.1 remote-as 1
+ neighbor 32.3.2.3  remote-as 3
+ neighbor 24.2.4.4  remote-as 45
+ neighbor 207.7.7.1  remote-as 1
  address-family ipv4
-  network 207.0.0.0 mask 255.255.255.0
+  neighbor 25.2.5.5 activate
+  neighbor 32.3.2.3 activate
+  neighbor 24.2.4.4 activate
+  neighbor 207.7.7.1 activate
   network 22.22.22.22 mask 255.255.255.255
-  network 24.2.4.0 mask 255.255.255.0
   network 25.2.5.0 mask 255.255.255.0
   network 32.3.2.0 mask 255.255.255.0
+  network 24.2.4.0 mask 255.255.255.0
+  network 207.7.7.0 mask 255.255.255.0
   end
   
 ---
@@ -959,7 +974,10 @@ conf t
   default-information originate always
   
 ---
-
+Recipe for NAT Network Address Translation
+1. Specify Outside and Inside
+2. Configure an ACL (w/c Ip's are allowed to pass)
+3. PAT Port Address Translation
 NAT
 
 !@R1
@@ -975,3 +993,5 @@ conf t
   exit
  !
  ip nat inside source list 1 interface ethernet 1/1 overload
+ end
+sh ip nat translation | command to check
